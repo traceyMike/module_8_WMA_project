@@ -1,0 +1,184 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>WMA Tracker</title>
+    <style>
+        /* ===STYLE FOR APPLICATION=== */
+        body {
+            font-family: system-ui, sans-serif;
+            line-height: 1.6; /* spacing between lines */
+            max-width: 800px; /*limit width of content for readability*/
+
+            margin: 40px auto; /*center content horizontally*/
+            padding: 20px; /*add padding*/
+            background-color: #5C4033; /*dark brown background color*/
+            color: #f5f5f5; /*light color text - create contrast */
+            position: relative; /*enable positioning for the child elements*/
+            min-height: 100vh; /*body takes up full viewport height*/
+        }
+
+        /* ===ADD IMAGE TO BOTTOM OF PAGE=== */
+        body::after {
+            content: ""; /*required for pseudo-elements*/
+            background-image: url("{{ url_for('static', filename='mossyOakBottomland.jpg') }}"); /*background image*/
+            background-size: contain; /*scale image to fit in container*/
+            background-position: center bottom; /*place image at bottom of page*/
+            background-repeat: no-repeat; /*prevent image from repeating*/
+            position: absolute; /*position image image absolutely in the body*/
+            bottom: 0; /* align image at bottom*/
+            left: 0; /*align image to the left*/
+            right: 0; /*align image to the right*/
+            height: 300px; /*set height of image area*/
+            z-index: -1; /*place image behind content*/
+        }
+
+        /* ===CONTAINER FOR CONTENT=== */
+        .container {
+            background-color: rgba(255, 255, 255, 0.9); /*Semi-transparent white background*/
+            padding: 30px; /*add padding inside container*/
+            border-radius: 10px; /*round the corners of the container*/
+            box-shadow: 0 2px 4px rgba(0,0,0,0.1); /*add shadow*/
+            position: relative; /*container above background image*/
+            z-index: 1; /*place container above image*/
+        }
+
+        /* === STYLE FOR MAIN HEADING=== */
+        h1 {
+            color: #2d3748;
+            margin-bottom: 24px; /* space below heading */
+            text-align: center;
+        }
+
+        /* ===STYLE FOR THE FORM TO ADD A NEW WMA=== */
+        .wma-form {
+            margin-bottom: 20px; /*space below form*/
+            display: flex; /*use flexbot for layout*/
+            gap: 10px; /*add space between form elements*/
+            flex-wrap: wrap; /*allow form elements to wrap on smaller screen*/
+        }
+
+        /* === STYLING FOR INPUT FIELD=== */
+        .wma-form input[type="text"] {
+            flex: 1; /*allow the input field to grow and fill space*/
+            padding: 10px; /*padding inside input field*/
+            border: 2px solid #e2e8f0; /*light gray border*/
+            border-radius: 5px;
+            font-size: 16px;
+        }
+
+        /* ===STYLING FOR SUBMIT BUTTON=== */
+        .wma-form button {
+            background-color: forestgreen;
+            color: white;
+            border: none;
+            padding: 10px 20px;
+            border-radius: 5px;
+            cursor: pointer;
+            font-size: 16px;
+        }
+
+        /* ===STYLING FOR WMA ITEMS=== */
+        .wma-item {
+            display: flex; /*flexbox for layout */
+            flex-wrap: wrap; /*allow items to wrap on smaller screen */
+            align-items: center; /*center vertically*/
+            padding: 15px;
+            margin-bottom: 10px;
+            background-color: rgba(255, 255, 255, 0.9);
+            border: 1px solid #e2e8f0;
+            border-radius: 5px;
+        }
+
+        /* STYLE FOR CHECKBOX LABELS */
+        .wma-item label {
+           
+            align-items: center; /*center items vertically*/
+            margin-right: 2px; /*space between checkboxes*/
+            color: black; /*font for deer and turkey in added wma*/
+        }
+
+        /*===STYLE FOR CHECKBOXES===*/
+        .wma-item input[type="checkbox"] {
+            margin-right:4px /*reduce space between checkbox and emoji*/
+        }
+
+        /* ===STYLING FOR WMA NAME=== */
+        .wma-item span {
+            flex: 1; /*allow name to grow and fill space*/
+            color:black;
+        }
+
+        /* ===STYLE FOR THE CREATION DATE=== */
+        .wma-item small {
+            color: #718096;
+            margin: 0 10px;
+        }
+
+        /* ===STYLE FOR LINKS=== */
+        .wma-item a {
+            text-decoration: none; /*remove default underline*/
+            margin: 0 10px; /*create space around links*/
+        }
+
+        /* ===STYLE FOR DELETE BUTTON=== */
+        .wma-item a[aria-label="Delete WMA"] {
+            color: #e53e3e; /* delete button color */
+        }
+
+    </style>
+</head>
+<body>
+    <div class="container">
+        <!--Main heading-->
+        <h1>Wildlife Management Area Tracker</h1>
+
+        <!--Form to add a new WMA-->
+        <form action="{{ url_for('add') }}" method="post" class="wma-form">
+            <!--input field for the WMA name-->
+            <input type="text" name="name" placeholder="Enter WMA name" required>
+            <!--submit button-->
+            <button type="submit">Add WMA</button>
+        </form>
+
+        <!--Loop through each WMA in WMA list-->
+        {% for wma in wmas %}
+        <div class="wma-item">
+            
+            <!--display the WMA name and sightings-->
+            <span>
+                {{ wma.name }}
+                {% if wma.deer or wma.turkey %}
+                    ({% if wma.deer %}Deer{% endif %}{% if wma.deer and wma.turkey %}/{% endif %}{% if wma.turkey %}Turkey{% endif %})
+                {% endif %}
+            </span>
+            
+            <!--display the creation date-->
+            <small>{{ wma.created_at.strftime('%Y-%m-%d %H:%M:%S') }}</small>
+
+            <!--Form for updating deer and turkey sightings-->
+            <form action="{{ url_for('update', wma_id=wma.id) }}" method="post" style="display: inline;">
+                
+                <!-- CHECKBOX FOR DEER SIGHTINGS-->
+                <label>
+                    <input type="checkbox" name="deer" 
+                    {% if wma.deer %}checked{% endif %}>Deer🦌
+                </label>
+                <!--CHECK BOX FOR TURKEY SIGHTINGS-->
+                <label>
+                    <input type="checkbox" name="turkey" 
+                    {% if wma.turkey %}checked{% endif %}>Turkey🦃
+                </label>
+                
+                <!--Submit button to update sighting-->
+                <button type="submit">Update</button>
+            </form>
+            
+            <!--DELETE BUTTON-->
+            <a href="{{ url_for('delete', wma_id=wma.id) }}" aria-label="Delete WMA">Delete</a>
+        </div>
+        {% endfor %}
+    </div>
+</body>
+</html>
